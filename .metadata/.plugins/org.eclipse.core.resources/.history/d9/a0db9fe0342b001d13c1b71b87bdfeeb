@@ -1,0 +1,169 @@
+
+//import iot.unipi.it.coap.resources.Actuator; IMPORT FOR COAP RESPONSE
+//import iot.unipi.it.coap.resources.Thermometer; IMPORT FOR COAP RESPONSE
+
+import java.sql.*;
+
+public class DBManager {
+    private static String DB_URL;
+    private static String user;//root
+    private static String password;//root
+    private PreparedStatement pstRegNewSens;//register new sensor in db
+    private PreparedStatement pstRegNewAct;//register new actuator in db
+    private PreparedStatement pstRegTempObs;// register new temperature sample from sensor ID
+    private PreparedStatement pstRegActActivation;// register new Activation record from actuator ID
+    private PreparedStatement pstRegMWCObs;// register new MWC (ground humidity) sample from actuator ID
+    private PreparedStatement pstUpdSensIPaddr;//update IPaddress from sensor ID
+    private PreparedStatement pstUpdActIPaddr;//update IPaddress from actuator ID
+    private PreparedStatement pstUpdActState;//update actuator state from actuator ID
+    private PreparedStatement pstGetBindAct;//get binded actuator ID and related IPaddress from sensor ID
+    private PreparedStatement pstGetLastActActivation; //get last activation record from actuator ID
+    private PreparedStatement pstGetActState;//get actuator state from actuator ID
+    private PreparedStatement pstGetLastnTempObs;//get last N temp. records from sensor ID
+    private PreparedStatement pstGetLastnMWCObs;//get last N MWC. records from sensor ID
+
+
+	public DBManager(String URL, String user, String password) {
+        DB_URL = URL;
+        DBManager.user = user;
+        DBManager.password = password;
+
+        try{
+            Connection conn = DriverManager.getConnection(DB_URL, DBManager.user, DBManager.password);
+            
+            pstRegNewSens = conn.prepareStatement(
+                "INSERT INTO `smart_irrigation_db`.`sensordevice` (`SensorId`, `PairedAct`, `Alias`, `IPaddress`, `GeoCoordinates`)"+
+                		" VALUES (?, ?, ?, ?, ?);"
+            );
+            pstRegNewAct = conn.prepareStatement(
+                "INSERT INTO `smart_irrigation_db`.`actuatordevice` (`ActuatorId`, `Alias`, `IPaddress`, `State`, `GeoCoordinates`) "+
+                		"VALUES (?, ?, ?, ?, ?);"
+            );
+            pstRegTempObs = conn.prepareStatement(
+            		"INSERT INTO `smart_irrigation_db`.`temperature` (`SensorId`, `Timestamp`, `Value_C`)"+
+            				" VALUES (?, ?, ?);"
+
+            );
+            pstRegActActivation = conn.prepareStatement(
+            		"INSERT INTO `smart_irrigation_db`.`actuatoractivation` (`ActuatorId`, `Timestamp`)"+
+            				" VALUES (?,?);"
+                    );
+            pstRegMWCObs = conn.prepareStatement(
+                    "INSERT INTO `smart_irrigation_db`.`volumetricwatercontent` (`SensorId`, `Timestamp`, `Value_perc`)"+
+                    		" VALUES ('ps12', '2022:08:23 12:34:24', '45');"
+                    );
+            
+            pstUpdSensIPaddr = conn.prepareStatement(
+                    "UPDATE `smart_irrigation_db`.`sensordevice`"+
+                    		" SET `IPaddress`= ?"+
+                    			" WHERE `SensorId`=?;"
+                    );
+            
+            pstUpdActIPaddr = conn.prepareStatement(
+                    "UPDATE `smart_irrigation_db`.`actuatordevice`"+
+                    		" SET `IPaddress`=?"+
+                    		" WHERE `ActuatorId`=?;"
+                    );
+            pstUpdActState = conn.prepareStatement(
+                    "UPDATE `smart_irrigation_db`.`actuatordevice`"+
+                    		" SET `State`=?"+
+                    		" WHERE `ActuatorId`=?;"
+                    );
+            
+            pstGetBindAct = conn.prepareStatement(
+            		"SELECT AD.ActuatorId, AD.IPaddress"+
+            				" FROM `smart_irrigation_db`.actuatordevice as AD inner join  `smart_irrigation_db`.sensordevice as SD on AD.ActuatorId = SD.PairedAct"+
+            					" where SensorId = ?;"
+            );
+            pstGetLastActActivation = conn.prepareStatement(
+            		"SELECT  MAX(Timestamp)"+
+            				" FROM  `smart_irrigation_db`.`actuatoractivation`"+
+            					" where ActuatorId = ?;"
+            );
+            pstGetActState = conn.prepareStatement(
+            		"SELECT State"+
+            		" FROM `smart_irrigation_db`.`actuatordevice`"+
+            		" where ActuatorId=?;"
+            );
+            pstGetLastnTempObs = conn.prepareStatement(
+            		"SELECT Timestamp, Value_C"+
+            				" FROM `smart_irrigation_db`.`temperature`"+
+            					" WHERE SensorId = ?"+
+            						" order by Timestamp DESC"+
+            							" LIMIT ?;"
+                );
+            pstGetLastnMWCObs = conn.prepareStatement(
+            		"SELECT Timestamp, Value_perc"+
+            				" FROM `smart_irrigation_db`.`volumetricwatercontent`"+
+            					" WHERE SensorId = ?"+
+            						" order by Timestamp DESC"+
+            							" LIMIT ?;"
+                );
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+        
+
+	public void RegNewActuator(String ActId, String Alias, String IPaddress,int State,String GeoCoordinates){
+	    try{
+	    	pstRegNewAct.setString(1, ActId);
+	    	pstRegNewAct.setString(2, Alias);
+	    	pstRegNewAct.setString(3, IPaddress);
+	    	pstRegNewAct.setInt(4, State);
+	    	pstRegNewAct.setString(5, GeoCoordinates);
+	    	pstRegNewAct.executeUpdate();
+	    }catch(SQLException e){
+	        e.printStackTrace();
+	    }
+    }   
+	
+	public void RegNewSensor(String SensorId,String PairedAct, String Alias, String IPaddress,String GeoCoordinates){
+	    try{
+	    	pstRegNewSens.setString(1, SensorId);
+	    	pstRegNewSens.setString(2, PairedAct);
+	    	pstRegNewSens.setString(3, Alias);
+	    	pstRegNewSens.setString(4, IPaddress);
+	    	pstRegNewSens.setString(5, GeoCoordinates);
+	    	pstRegNewSens.executeUpdate();
+	    }catch(SQLException e){
+	        e.printStackTrace();
+	    }
+    }   
+
+	public void RegNewTempObs(String SensorId,String Timestamp, int valuec){
+	    try{
+	    	//valutare timestamp di sistema generato lato server java
+	    	pstRegNewSens.setString(1, SensorId);
+	    	pstRegNewSens.setString(2, Timestamp);
+	    	pstRegNewSens.setInt(3, valuec);
+	    	pstRegNewSens.executeUpdate();
+	    }catch(SQLException e){
+	        e.printStackTrace();
+	    }
+	}
+	
+
+
+    public void RegActuatorActivation(String ActuatorId ,String Timestamp) {
+    	  try{
+  	    	//valutare timestamp di sistema generato lato server java
+    		  pstRegActActivation.setString(1, ActuatorId);
+    		  pstRegActActivation.setString(2, Timestamp);
+    		  pstRegActActivation.executeUpdate();
+  	    }catch(SQLException e){
+  	        e.printStackTrace();
+  	    }
+  	}
+    
+    
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}
+
+
+

@@ -1,0 +1,11 @@
+
+public class Prova {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		int p = 10;
+		for(int i =0;i<p;i++)
+			System.out.print("prova eclipse");
+	}
+
+}
