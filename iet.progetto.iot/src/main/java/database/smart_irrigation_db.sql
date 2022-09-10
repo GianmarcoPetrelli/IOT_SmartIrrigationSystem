@@ -111,7 +111,7 @@ DROP TABLE IF EXISTS `Temperature`;
 CREATE TABLE `Temperature` (
   `SensorId` char(30) NOT NULL,
   `Timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `Value_C` int(11) NOT NULL,
+  `Value_C`  decimal(4,2) NOT NULL,
   PRIMARY KEY (`SensorId`,`Timestamp`),
   KEY `SensAssign` (`SensorId`),
   CONSTRAINT `SensAssignTemp` FOREIGN KEY (`SensorId`) REFERENCES `SensorDevice` (`SensorId`) ON DELETE NO ACTION ON UPDATE NO ACTION
@@ -137,7 +137,7 @@ DROP TABLE IF EXISTS `VolumetricWaterContent`;
 CREATE TABLE `VolumetricWaterContent` (
   `SensorId` char(30) NOT NULL,
   `Timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `Value_perc` int(11) NOT NULL,
+  `Value_perc` decimal(4,2) NOT NULL,
   PRIMARY KEY (`SensorId`,`Timestamp`),
   KEY `SensAssign` (`SensorId`),
   CONSTRAINT `SensAssignVMC` FOREIGN KEY (`SensorId`) REFERENCES `SensorDevice` (`SensorId`) ON DELETE CASCADE ON UPDATE NO ACTION

@@ -135,12 +135,12 @@ public class DBManager {
 	    }
     }   
 
-	public void RegNewTempObs(String SensorId,String Timestamp, int valuec){
+	public void RegNewTempObs(String SensorId,String Timestamp, double valuec){
 	    try{
 	    	//valutare timestamp di sistema generato lato server java
 	    	pstRegTempObs.setString(1, SensorId);
 	    	pstRegTempObs.setString(2, Timestamp);
-	    	pstRegTempObs.setInt(3, valuec);
+	    	pstRegTempObs.setDouble(3, valuec);
 	    	pstRegTempObs.executeUpdate();
 	    }catch(SQLException e){
 	        e.printStackTrace();
@@ -159,12 +159,12 @@ public class DBManager {
   	    }
   	}
     
-public void RegNewMWCObs(String SensorId,String Timestamp, int value_perc){
+public void RegNewMWCObs(String SensorId,String Timestamp, double value_perc){
     try{
     	//valutare timestamp di sistema generato lato server java
     	pstRegMWCObs.setString(1, SensorId);
     	pstRegMWCObs.setString(2, Timestamp);
-    	pstRegMWCObs.setInt(3, value_perc);
+    	pstRegMWCObs.setDouble(3, value_perc);
     	pstRegMWCObs.executeUpdate();
     }catch(SQLException e){
         e.printStackTrace();
@@ -309,7 +309,7 @@ public void GetLastnMWCObs(String SensorId, int n){
 		System.out.println("------test get act state---------");
 		db.GetActState("pJavaConnect2");
 		System.out.println("---------------");
-		*/
+		*//*
 		while(true) {
 			try {
 				TimeUnit.SECONDS.sleep(10);
@@ -318,13 +318,13 @@ public void GetLastnMWCObs(String SensorId, int n){
 				e.printStackTrace();
 			}
 			String timest = Timestamp.from(Instant.now()).toString();
-			db.RegActuatorActivation("pJavaConnect2", timest);
+			//db.RegActuatorActivation("pJavaConnect2", timest);
 			//db.RegActuatorActivation("act1", timest);
 			
 		}
+		*/
 		
-		
-		//db.RegNewTempObs("pJava1","2020-08-09 13:56:00",12);
+		db.RegNewTempObs("temp1","2020-08-09 13:56:20",12.67);
 		//db.RegNewTempObs("pJava1","2020-08-09 14:56:00",12);
 		//db.GetLastnTempObs("pJava1", 2);
 		//System.out.println("---------------");
